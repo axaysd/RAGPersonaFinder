@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Reddit to PDF</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Reddit Post to PDF</h1>
+        <form method="POST" class="mt-4">
+            <div class="form-group">
+                <label for="url">Reddit Post URL:</label>
+                <input type="text" class="form-control" id="url" name="url" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Generate PDF</button>
+        </form>
+
+        {% if output %}
+        <div class="alert alert-info mt-4">
+            <strong>Output:</strong> {{ pain_points }}
+        </div>
+        {% endif %}
+
+        {% if rag_tool %}
+        <form method="POST" class="mt-4">
+            <div class="form-group">
+                <label for="user_prompt">Enter your prompt:</label>
+                <input type="text" class="form-control" id="user_prompt" name="user_prompt" required>
+            </div>
+            <button type="submit" class="btn btn-secondary btn-block">Submit Prompt</button>
+        </form>
+        {% endif %}
+    </div>
+</body>
+</html>

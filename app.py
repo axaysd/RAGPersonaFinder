@@ -13,12 +13,12 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for flashing messages
 
 # Configure Reddit API
-reddit = praw.Reddit(client_id='FqSMlY_FfDLybf8QT8jKOA',
-                     client_secret='HDYjkUEDIbdOR_G6AX48sZ0FYZL_3g',
-                     user_agent='owl-99')
+reddit = praw.Reddit(client_id='',
+                     client_secret='',
+                     user_agent='')
 
 # Set the Groq API key
-os.environ['GROQ_API_KEY'] = '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'
+os.environ['GROQ_API_KEY'] = ''
 
 # Directory to save PDFs
 PDF_DIR = 'pdfs'

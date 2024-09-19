@@ -13,12 +13,12 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for flashing messages
 
 # Configure Reddit API
-reddit = praw.Reddit(client_id='',
-                     client_secret='',
-                     user_agent='')
+reddit = praw.Reddit(client_id='FqSMlY_FfDLybf8QT8jKOA',
+                     client_secret='HDYjkUEDIbdOR_G6AX48sZ0FYZL_3g',
+                     user_agent='owl-99')
 
 # Set the Groq API key
-os.environ['GROQ_API_KEY'] = ''
+os.environ['GROQ_API_KEY'] = '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'
 
 # Directory to save PDFs
 PDF_DIR = 'pdfs'
@@ -36,7 +36,11 @@ llm = ChatOpenAI(
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
+        # Capture the creative_mode value
+        creative_mode = request.form.get('creative_mode', 'off')  # Default to 'off' if not set
+
         if 'url' in request.form:
+            # Existing logic for handling URL submission
             url = request.form['url']
             post = reddit.submission(url=url)
             comments = post.comments.list()
@@ -44,8 +48,9 @@ def index():
             pdf_path = create_pdf(post, comments)
             flash(f'PDF saved successfully at: {pdf_path}')  # Flash message to indicate success
 
-            # Store the PDF path in session
+            # Store the PDF path and creative_mode in session
             session['pdf_path'] = pdf_path
+            session['creative_mode'] = creative_mode  # Store creative_mode in session
 
             # Store rag_tool configuration in session
             session['rag_tool_config'] = {
@@ -65,55 +70,45 @@ def index():
 
             return render_template('index.html', rag_tool=True)  # Indicate rag_tool is ready
 
-        elif 'user_prompt' in request.form:
-            user_prompt = request.form['user_prompt']
+        # This block will execute regardless of the creative_mode value
+        if 'creative_mode' in request.form or 'creative_mode' not in request.form:
+            # Use the stored PDF path and creative_mode
             rag_tool = PDFSearchTool(
                 pdf=session['pdf_path'],  # Pass the PDF path directly
                 config=session['rag_tool_config']  # Pass the configuration
             )
-            outputt = rag_tool.run(user_prompt)  # Ensure this is the correct variable
+            outputt = rag_tool.run(query=session['pdf_path'])  # Pass the PDF path or relevant query
 
-            # Check if outputt is valid
-            if not outputt:
-                flash('Error: No output generated from the PDF search tool.')
-                return render_template('index.html')
-
-            # Define CrewAI agent with required fields
+            # Define CrewAI agent and task using creative_mode
             agent = Agent(
-                role="Product Manager Assistant",  # Specify the role
-                goal="Find out the pain points users by analyzing the user reviews from {outputt}.",  # Specify the goal
-                backstory="You have to look into {outputt} to identify the painpoints based on the reviews users have left about the product.",  # Specify the backstory
+                role="Find out the pain points users mention in the product reviews by analyzing the user reviews from {outputt}.",
+                goal="Analyze user reviews for the product and identify pain-points.",
+                backstory="You have to look into {outputt} to identify the painpoints based on the reviews users have left about the product.",
                 verbose=True,
                 allow_delegation=False,
                 llm=llm,
             )
             
-            # Define the task with required fields
             task = Task(
-                description="Find out the pain points users by analyzing the user reviews from {outputt}",  # Use {outputt}
-                expected_output="A list of painpoints with the username(s) of the user(s) associated with the painpoint.",  # Use {outputt}
-                agent=agent,  # Add expected output,
+                description="Find out the pain points users by analyzing the user reviews from {outputt}. Only if the value of {creative_mode} is on, generate some important pain points that you didn't find in {outputt} for the product. For the pain points that you generated yourself if the value of {creative_mode} was on, add a prefix 'X_'.",
+                expected_output="A list of painpoints with the username(s) of the user(s) associated with the painpoint.",
+                agent=agent,
+                creative_mode=creative_mode  # Pass the creative_mode value
             )
-            
-            # Create the Crew instance with the correct input
+
+            # Create the Crew instance and execute
             rag_crew = Crew(
                 agents=[agent],
                 tasks=[task],
                 verbose=True,
             )
-            print("outputt:::", outputt)
-
-            inputs1 = {"question": outputt, "outputt": outputt}  # Add outputt to inputs1
-
-            # Execute the Crew instance
+            inputs1 = {"question": outputt, "outputt": outputt, "creative_mode": creative_mode}  # Add creative_mode to inputs1
             pain_points = rag_crew.kickoff(inputs=inputs1)
+            print("creative_mode:", creative_mode)
 
-            print(f"Output from PDFSearchTool: {outputt}")
-            print(f"Pain Points from CrewAI: {pain_points}")
+            return render_template('index.html', output=outputt, pain_points=pain_points, rag_tool=True)
 
-            return render_template('index.html', output=outputt, pain_points=pain_points)  # Pass pain points to the template
-
-    return render_template('index.html')
+    return render_template('index.html', rag_tool=False)  # Default render
 
 def create_pdf(post, comments):
     pdf = FPDF()

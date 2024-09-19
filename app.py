@@ -80,9 +80,9 @@ def index():
 
             # Define CrewAI agent with required fields
             agent = Agent(
-                role="Assistant",  # Specify the role
-                goal="Just display the input data you have received.",  # Specify the goal
-                backstory="Just display the input data you have received.",  # Specify the backstory
+                role="Product Manager Assistant",  # Specify the role
+                goal="Find out the pain points users by analyzing the user reviews from {outputt}.",  # Specify the goal
+                backstory="You have to look into {outputt} to identify the painpoints based on the reviews users have left about the product.",  # Specify the backstory
                 verbose=True,
                 allow_delegation=False,
                 llm=llm,
@@ -90,8 +90,8 @@ def index():
             
             # Define the task with required fields
             task = Task(
-                description="Just display the input data you have received.",  # Add description
-                expected_output="Just display the input data you have received.",
+                description="Find out the pain points users by analyzing the user reviews from {outputt}",  # Use {outputt}
+                expected_output="A list of painpoints with the username(s) of the user(s) associated with the painpoint.",  # Use {outputt}
                 agent=agent,  # Add expected output,
             )
             
@@ -103,8 +103,7 @@ def index():
             )
             print("outputt:::", outputt)
 
-            inputs1 = {"question": outputt}
-            print(inputs1)
+            inputs1 = {"question": outputt, "outputt": outputt}  # Add outputt to inputs1
 
             # Execute the Crew instance
             pain_points = rag_crew.kickoff(inputs=inputs1)

@@ -26,10 +26,13 @@
         {% if rag_tool %}
         <form method="POST" class="mt-4">
             <div class="form-group">
-                <label for="user_prompt">Enter your prompt:</label>
-                <input type="text" class="form-control" id="user_prompt" name="user_prompt" required>
+                <label for="creative_mode">Creative Mode:</label>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="creative_mode" name="creative_mode" value="on">
+                    <label class="form-check-label" for="creative_mode">ON/OFF</label>
+                </div>
             </div>
-            <button type="submit" class="btn btn-secondary btn-block">Submit Prompt</button>
+            <button type="submit" class="btn btn-secondary btn-block">Submit</button>
         </form>
         {% endif %}
     </div>
